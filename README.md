@@ -6,7 +6,7 @@ The Operator Interface library allows control via a custom hardware interface fo
 
 ### More information about our robot platform at the [Robot Missions Website ➞](http://robotmissions.org)
 
-Compatible with [Teensy 3.2](https://www.pjrc.com/store/teensy32.html), and [Teensy LC]([Teensy 3.2](https://www.pjrc.com/store/teensy32.html)) (with an external 3.3V regulator).
+Compatible with [Teensy 3.2](https://www.pjrc.com/store/teensy32.html), and [Teensy LC](https://www.pjrc.com/teensy/teensyLC.html) (with an external 3.3V regulator).
 
 ![Two of the Operator Interfaces, with the LEDs glowing, and display showing 'Robot Missions Hero!'](http://robotmissions.org/images/github/robot_missions_operator_interface.jpg)
 
