@@ -28,11 +28,11 @@
 #ifndef _OPINTERFACE_H_
 #define _OPINTERFACE_H_
 
-#define COMM_DEBUG false // anything with promulgate
+#define COMM_DEBUG true // anything with promulgate
 #define OP_DEBUG true    // anything with buttons, or op in general
 #define XBEE_DEBUG false // anything with the xbee scope
 #define CONN_DEBUG false // anything with the connection stack
-#define MSG_DEBUG false  // anything with adding / removing Msgs
+#define MSG_DEBUG true  // anything with adding / removing Msgs
 
 // speeds
 #define MAX_SPEED 255
@@ -82,8 +82,6 @@
 #define JOYSTICK_X 16
 #define JOYSTICK_Y 17
 #define JOYSTICK_SW 15
-#define ACTIVITY_TIMEOUT 1000
-#define IDLE_UPDATE_FREQ 250
 #define MAX_X 1019  // left
 #define MIN_X 6     // right
 #define MAX_Y 1023  // up
@@ -101,7 +99,7 @@
 //#define XBEE_COORDINATOR_DL 0x0000FFFF // broadcast
 
 // vars
-#define MAX_ROBOTS 6
+#define MAX_ROBOTS 3
 #define DEFAULT_RETRY_TIME 250
 #define SECONDARY_RETRY_TIME 500
 #define REMOTE_OP_TIMEOUT 15000
@@ -431,7 +429,8 @@ class OperatorInterface {
     uint8_t slow_speed;
     uint8_t letter_itr;
     long last_letter_itr;
-
+    long last_new_send;
+    
     // Joystick
     uint16_t joy_x;
     uint16_t joy_y;

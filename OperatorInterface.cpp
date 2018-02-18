@@ -112,7 +112,8 @@ void OperatorInterface::begin() {
   letter_itr = 0;
   last_letter_itr = 0;
   sticky_buttons = false;
-
+  last_new_send = 0;
+  
   // Control
   motor_l_dir = false;
   motor_r_dir = false;
@@ -334,7 +335,6 @@ void OperatorInterface::updateOperator() {
     // If not, send our ID less frequently
     if(current_time-last_retry_time >= 2500) {
       addMsg( 3, '$', 'X', 1, OP_ID, 'X', 1, OP_ID, '!' );
-      //connSend('$', 'X', 1, OP_ID, 'X', 1, OP_ID, '!');
       last_retry_time = current_time;
     }
   }
@@ -343,7 +343,9 @@ void OperatorInterface::updateOperator() {
   connRead();
 
   // Retry sending messages if there are any
-  connRetrySend();
+  // TODO - this is disabled for now, the functionality was
+  // lagging the sending of the most recent messages
+  //connRetrySend();
   
   // Comms have timed out
   if(millis()-last_rx_msg >= REMOTE_OP_TIMEOUT && SELECTED_ROBOT == true) {
@@ -481,8 +483,10 @@ void OperatorInterface::joystickDriveControl() {
       
       if(joy_y >= joy_y_prev) { // going faster
         scrolling_up = true;
-      } else if(joy_y < joy_y_prev) { // going slower
+      } else if(joy_y < (joy_y_prev-5)) { // going slower
         scrolling_up = false;
+      } else {
+        scrolling_up = true;
       }
 
       if(scrolling_up) {
