@@ -102,7 +102,7 @@
 #define MAX_ROBOTS 3
 #define DEFAULT_RETRY_TIME 250
 #define SECONDARY_RETRY_TIME 500
-#define REMOTE_OP_TIMEOUT 15000
+#define REMOTE_OP_TIMEOUT 1500 // previously 15000
 
 // conns
 #define XBEE_CONN 1

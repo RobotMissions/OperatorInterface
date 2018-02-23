@@ -1156,9 +1156,9 @@ void OperatorInterface::updateRxTime(XBeeAddress64 senderLongAddress) {
 }
 
 void OperatorInterface::xbeeWatchdog() {
-  if(current_time-last_rx_check >= 10000) {
+  if(current_time-last_rx_check >= 3000) { // works ok at 1000 but disconnects rapidly, previously 10000
     for(int i=0; i<MAX_ROBOTS; i++) {
-      if(current_time-last_rx_all[i] >= 11000) {
+      if(current_time-last_rx_all[i] >= 3000) { // works ok at 1000 but disconnects rapidly, previously 11000
         if(addr_all_robots[i].getMsb() != 0 && addr_all_robots[i].getLsb() != 0) {
           if(addr_all_robots[i].getMsb() != addr_fake.getMsb() && addr_all_robots[i].getLsb() != addr_fake.getLsb()) {
             // remove it from the list
@@ -1183,11 +1183,11 @@ void OperatorInterface::xbeeWatchdog() {
               }
             }
             // reset if we're no longer connected to any robot
-            //if(num_robot_conn == 0) {
+            if(num_robot_conn == 0) { // previously this was commented out
               resetButtonStates();
               SELECTED_ROBOT = false;
               CURRENT_STATE = SEARCHING_STATE;
-            //}
+            }
             // remove it from the list
             addr_all_robots[i] = XBeeAddress64(0, 0);
             last_rx_all[i] = 0;
@@ -1340,7 +1340,7 @@ void OperatorInterface::connRead() {
   } else if(CONN_TYPE == XBEE_CONN) {
 
     while(xbeeRead()) {
-      if(CONN_DEBUG) Serial << "Read... (" << rx.getDataLength() << ")\n";
+      if(CONN_DEBUG) Serial << "Read... (" << rx.getDataLength() << ") bytes\n";
       for(int i=0; i<=rx.getDataLength(); i++) {
         c = message_rx[i];
         promulgate.organize_message(c);
@@ -1628,6 +1628,7 @@ void OperatorInterface::breatheLeds() {
 void OperatorInterface::ledsOff() {
   for(int j=0; j<6; j++) {
     digitalWrite(led_pins[j], LOW);
+    analogWrite(led_pins[j], 0);
   }
 }
 
