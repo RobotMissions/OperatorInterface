@@ -360,7 +360,7 @@ class OperatorInterface {
     bool getButton(uint8_t b);
     void setButtonState(uint8_t b, uint8_t state);
     bool getJoystickButton();
-    void resetButtonStates();
+    void resetButtonStates(bool turnOff);
     void ledQuickFade(uint8_t pin, uint8_t from, uint8_t to);
     void ledQuickPulseAll();
     

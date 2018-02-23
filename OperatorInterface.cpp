@@ -680,8 +680,7 @@ void OperatorInterface::updateButtons() {
               button_states[j] = 0;
             }
           }
-          resetButtonStates();
-          delay(100);
+          resetButtonStates(false);
         }
         button_states[i] = 1;
 
@@ -694,7 +693,7 @@ void OperatorInterface::updateButtons() {
         if(sticky_buttons) {
           // no need to do anything extra
         } else {
-          resetButtonStates();
+          resetButtonStates(false);
           delay(100);
         }
         button_states[i] = 0;
@@ -808,11 +807,11 @@ bool OperatorInterface::getJoystickButton() {
   return false;
 }
 
-void OperatorInterface::resetButtonStates() {
+void OperatorInterface::resetButtonStates(bool turnOff) {
   for(int i=0; i<7; i++) {
     button_states[i] = 0;
   }
-  ledsOff();
+  if(turnOff) ledsOff();
 }
 
 
@@ -833,7 +832,7 @@ void OperatorInterface::updateModeSwitch() {
       buzz(NOTE_F6, 80);
       delay(80);
       buzz(NOTE_E6, 80);
-      resetButtonStates();
+      resetButtonStates(true);
       _modeChangedCallback(MODE1);
     }
     CURRENT_MODE = MODE1;
@@ -844,7 +843,7 @@ void OperatorInterface::updateModeSwitch() {
       buzz(NOTE_G6, 80);
       delay(80);
       buzz(NOTE_C6, 80);
-      resetButtonStates();
+      resetButtonStates(true);
       _modeChangedCallback(MODE2);
     }
     CURRENT_MODE = MODE2;
@@ -855,7 +854,7 @@ void OperatorInterface::updateModeSwitch() {
       buzz(NOTE_D6, 80);
       delay(80);
       buzz(NOTE_A6, 80);
-      resetButtonStates();
+      resetButtonStates(true);
       _modeChangedCallback(MODE3);
     }
     CURRENT_MODE = MODE3;
@@ -1184,7 +1183,7 @@ void OperatorInterface::xbeeWatchdog() {
             }
             // reset if we're no longer connected to any robot
             if(num_robot_conn == 0) { // previously this was commented out
-              resetButtonStates();
+              resetButtonStates(true);
               SELECTED_ROBOT = false;
               CURRENT_STATE = SEARCHING_STATE;
             }
@@ -1475,7 +1474,7 @@ void OperatorInterface::chooseRobotToConnect() {
     if(num_robot_conn > 0) {  
       SELECTED_ROBOT = true;
       CURRENT_STATE = IDLE_STATE;
-      resetButtonStates();
+      resetButtonStates(true);
       sticky_buttons = false;
     }
 
