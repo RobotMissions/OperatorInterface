@@ -353,6 +353,7 @@ class OperatorInterface {
     int getJoyY();
     void joystickDriveControl();
     void joystickArmControl();
+    void joystickSimpleControl();
     
     // Buttons
     uint8_t button_states[7];

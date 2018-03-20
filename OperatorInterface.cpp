@@ -639,6 +639,102 @@ void OperatorInterface::joystickArmControl() {
 }
 
 
+void OperatorInterface::joystickSimpleControl() {
+
+  Msg m = msg_none;
+  bool motor_dir = false;
+  bool motor_l_dir = false;
+  bool motor_r_dir = false;
+  bool send_motor_message = false;
+
+  updateJoystick();
+
+  if(joy_y >= (HOME_Y-ZERO_ZONE) && joy_y <= (HOME_Y+ZERO_ZONE)
+     && joy_x >= (HOME_X-ZERO_ZONE) && joy_x <= (HOME_X+ZERO_ZONE)) {
+    
+    if(OP_DEBUG) Serial << "home" << endl;
+
+    send_motor_message = false;
+    
+  } else if(joy_x >= (MAX_X-150) && ( joy_y >= (HOME_Y-ZERO_ZONE) && joy_y <= (HOME_Y+ZERO_ZONE) ) ) {
+
+    motor_l_dir = false;
+    motor_r_dir = true;
+
+    send_motor_message = true;
+  
+  } else if(joy_x <= (MIN_X+150) && ( joy_y >= (HOME_Y-ZERO_ZONE) && joy_y <= (HOME_Y+ZERO_ZONE) )) {
+
+    motor_l_dir = true;
+    motor_r_dir = false;
+    
+    send_motor_message = true;
+
+  } else {
+
+    if(joy_y >= (HOME_Y+ZERO_ZONE)) { 
+
+      // forwards
+      motor_dir = true;
+      send_motor_message = true;
+
+    } else if(joy_y <= (HOME_Y-ZERO_ZONE)) { 
+
+      // backwards
+      motor_dir = false;
+      send_motor_message = true;
+
+    }
+
+    // sending the data
+    if(motor_dir) {
+      motor_l_dir = true;
+      motor_r_dir = true;
+    } else {
+      motor_l_dir = false;
+      motor_r_dir = false;
+    }
+    
+  }
+
+  if(send_motor_message) {
+
+    int key_to_send = 0;
+    if(motor_l_dir) {
+      if(motor_r_dir) {
+        // forward
+        key_to_send = 1;
+      } else {
+        // right
+        key_to_send = 2;
+      }
+    } else {
+      if(motor_r_dir) {
+        // left
+        key_to_send = 4;
+      } else {
+        // backward
+        key_to_send = 3;
+      }
+    }
+
+    m.priority = 3;
+    m.action = '@';
+    m.pck1.cmd = 'K';
+    m.pck1.key = key_to_send;
+    m.pck1.val = 0;
+    m.pck2.cmd = '0';
+    m.pck2.key = 0;
+    m.pck2.val = 0;
+    m.delim = '!';
+
+    insertMsg(m);
+
+  }
+  
+}
+
+
 /*
 
 ---- #Buttons ----
@@ -710,7 +806,7 @@ void OperatorInterface::updateButtons() {
       m.action = '#';
       m.pck1.key = CURRENT_MODE;
       m.pck1.val = button_states[i];
-      m.pck2.cmd = 'N';
+      m.pck2.cmd = 'Z';
       m.pck2.key = CURRENT_MODE;
       m.pck2.val = CURRENT_STATE;
       m.delim = '!';
