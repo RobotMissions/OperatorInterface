@@ -1166,6 +1166,42 @@ void OperatorInterface::xbeeSend(char action, char cmd, uint8_t key, uint16_t va
  
 }
 
+
+void OperatorInterface::xbeeSendStr(String str) {
+
+  sprintf(message_tx,"%s", str);
+
+  if(SELECTED_ROBOT) { // send to everyone as we're in discovery mode
+  
+    for(int i=0; i<num_addrs; i++) {
+      if(num_addrs >= MAX_ROBOTS-1) break; // something went wrong here
+
+      if(addr_all_robots[i].getMsb() != 0 && addr_all_robots[i].getLsb() != 0) {
+        if(addr_all_robots[i].getMsb() != addr_fake.getMsb() && addr_all_robots[i].getLsb() != addr_fake.getLsb()) {
+      
+          if(XBEE_DEBUG) Serial << "Sent to list ind " << i << endl;
+          ZBTxRequest zbtx = ZBTxRequest(addr_all_robots[i], (uint8_t *)message_tx, strlen(message_tx));
+          zbtx.setFrameId('0');
+          xbee.send(zbtx); 
+          ind_addr_sent = i;
+        
+        }
+      }
+    }
+
+  } else {
+    // by default, send to the coordinator of the network
+    if(XBEE_DEBUG) Serial << "Send to default coordinator" << endl;
+    ZBTxRequest zbtx = ZBTxRequest(addr_coord, (uint8_t *)message_tx, strlen(message_tx));
+    //ZBTxRequest zbtx = ZBTxRequest(addr_robot, (uint8_t *)message_tx, strlen(message_tx));
+    zbtx.setFrameId('0');
+    xbee.send(zbtx); 
+  }
+ 
+}
+
+
+
 void OperatorInterface::xbeeSendEasy(char c) {
 
   sprintf(message_tx,"%c", c);

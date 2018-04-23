@@ -300,6 +300,7 @@ class OperatorInterface {
     unsigned long last_rx;
     unsigned long last_tx;
     unsigned long last_retry_time;
+    void xbeeSendStr(String str);
 
     // Xbee Robots
     XBeeAddress64 addr_all_robots[MAX_ROBOTS];
