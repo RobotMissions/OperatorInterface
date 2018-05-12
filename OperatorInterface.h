@@ -86,7 +86,7 @@
 #define MIN_X 6     // right
 #define MAX_Y 1023  // up
 #define MIN_Y 8     // down
-#define ZERO_ZONE 50
+#define ZERO_ZONE 70
 
 // states
 #define IDLE_STATE 0
@@ -367,6 +367,7 @@ class OperatorInterface {
     void ledQuickPulseAll();
     
     // LEDs
+    uint8_t led_pins[7];
     long last_led_blink;
     bool led_on;
     void ledsOff();
@@ -422,7 +423,6 @@ class OperatorInterface {
 
     // Pins
     uint8_t button_pins[7];
-    uint8_t led_pins[7];
     Bounce bounce_buttons[7];
 
     // Misc

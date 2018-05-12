@@ -441,6 +441,7 @@ void OperatorInterface::joystickDriveControl() {
      && joy_x >= (HOME_X-ZERO_ZONE) && joy_x <= (HOME_X+ZERO_ZONE)) {
     
     if(OP_DEBUG) Serial << "home" << endl;
+    Serial << "home" << endl;
 
     motor_speed = 0;
     motor_l_dir = false;
@@ -1042,7 +1043,6 @@ Msg OperatorInterface::popNextMsg() {
 
   if(msgs_in_queue <= 0) {
     msgs_in_queue = 0;
-    addMsg(msg_none);
   }
 
   return m;
@@ -1693,7 +1693,15 @@ void OperatorInterface::transmitDidComplete() {
 
 void OperatorInterface::sendNextMsg() {
   Msg m = popNextMsg();
-  connSend(m);
+
+  // check to see if m is msg_none
+  if(m.action == msg_none.action && m.pck1.cmd == msg_none.pck1.cmd && m.pck1.key == msg_none.pck1.key
+  && m.pck1.val == msg_none.pck1.val && m.pck2.cmd == msg_none.pck2.cmd && m.pck2.key == msg_none.pck2.key
+  && m.pck2.val == msg_none.pck2.val && m.delim == msg_none.delim) {
+    Serial << "~~~~~~~~~~ Nothing new to send ~~~~~~~~~~" << endl;
+  } else {
+    connSend(m);
+  }
 }
 
 
