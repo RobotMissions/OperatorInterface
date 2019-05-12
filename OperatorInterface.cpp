@@ -281,6 +281,14 @@ void OperatorInterface::initOperator(int conn, long baud, HardwareSerial *serial
     CONN_TYPE = XBEE_CONN;
     possible = true;
 
+  } else if(conn == XBEE_TRANSPARENT_CONN) {
+
+  	Serial1.begin(baud);
+
+    CONN_TYPE = XBEE_TRANSPARENT_CONN;
+    SELECTED_ROBOT = true; // connected by default
+    possible = true;
+
   } else if(conn == BT_CONN) {
 
     Serial1.begin(baud);
@@ -366,7 +374,8 @@ void OperatorInterface::updateOperator() {
     chooseRobotToConnect();
   }
 
-  if(CONN_TYPE == BT_CONN || CONN_TYPE == USB_CONN) {
+  // need to test this with transparent conn and see if it works properly
+  if(CONN_TYPE == BT_CONN || CONN_TYPE == USB_CONN || CONN_TYPE == XBEE_TRANSPARENT_CONN) {
     // Send the messages from the operator without waiting for
     // messages from the robot. Doing this because assuming that
     // these types of connections would most likely be to a computer
@@ -429,7 +438,7 @@ int OperatorInterface::getJoyY() {
 
 */
 
-void OperatorInterface::joystickDriveControl() {
+void OperatorInterface::joystickDriveControl(int DRIVE_SPEED, bool acceleration) {
 
   Msg m = msg_none;
   bool motor_dir = true;
@@ -496,6 +505,9 @@ void OperatorInterface::joystickDriveControl() {
         motor_speed -= incr_speed;
       }
 
+      // bruteforce for field testing
+      if(!acceleration) motor_speed = DRIVE_SPEED;
+
       if(motor_speed > MAX_SPEED) motor_speed = MAX_SPEED;
       if(motor_speed < MIN_SPEED) motor_speed = MIN_SPEED;
       motor_dir = true;
@@ -525,6 +537,9 @@ void OperatorInterface::joystickDriveControl() {
         motor_speed += incr_speed;
       }
 
+      // bruteforce for field testing
+      if(!acceleration) motor_speed = DRIVE_SPEED;
+
       if(motor_speed > MAX_SPEED) motor_speed = MAX_SPEED;
       if(motor_speed < MIN_SPEED) motor_speed = MIN_SPEED;
       motor_dir = false;
@@ -551,6 +566,12 @@ void OperatorInterface::joystickDriveControl() {
     if(OP_DEBUG) Serial << "Motor speed R (" << motor_r_dir << "): " << motor_r_speed;
     if(OP_DEBUG) Serial << endl;
 
+    if(motor_l_dir == motor_r_dir) {
+      // TODO: have a better switch for this
+      //motor_l_dir = !motor_l_dir;
+      //motor_r_dir = !motor_r_dir;
+    }
+
     m.priority = 3;
     m.action = '@';
     m.pck1.cmd = 'L';
@@ -560,7 +581,7 @@ void OperatorInterface::joystickDriveControl() {
     m.pck2.key = motor_r_dir;
     m.pck2.val = motor_r_speed;
     m.delim = '!';
-
+    
     insertMsg(m);
 
   }
@@ -897,6 +918,12 @@ bool OperatorInterface::getButton(uint8_t b) {
 
 void OperatorInterface::setButtonState(uint8_t b, uint8_t state) {
   button_states[b] = state;
+  for(int j=0; j<6; j++) {
+    if(state == 0) {
+      digitalWrite(led_pins[j], LOW);
+      analogWrite(led_pins[j], 0);
+    }
+  }
 }
 
 bool OperatorInterface::getJoystickButton() {
@@ -1169,7 +1196,8 @@ void OperatorInterface::xbeeSend(char action, char cmd, uint8_t key, uint16_t va
 
 void OperatorInterface::xbeeSendStr(String str) {
 
-  sprintf(message_tx,"%s", str);
+	// URGENT TODO
+  //sprintf(message_tx,"%s", str);
 
   if(SELECTED_ROBOT) { // send to everyone as we're in discovery mode
   
@@ -1363,6 +1391,33 @@ bool OperatorInterface::xbeeRead() {
 
     if(XBEE_DEBUG) Serial << "Xbee response: " << xbee.getResponse().getApiId();
 
+    // --- 900MHz Xbee data
+	  if(xbee.getResponse().getApiId() == 0x8B) { // dec was 139
+	  	Serial << "Received data on 900MHz" << endl;
+
+	  	xbee.getResponse().getZBRxResponse(rx);
+
+      XBeeAddress64 senderLongAddress = rx.getRemoteAddress64();
+      if(XBEE_DEBUG) Serial.print(msg_rx_count);
+      if(XBEE_DEBUG) Serial.print(" >>>> Received data from ");
+      if(XBEE_DEBUG) print32Bits(senderLongAddress.getMsb());
+      if(XBEE_DEBUG) Serial << " ";
+      if(XBEE_DEBUG) print32Bits(senderLongAddress.getLsb());
+      if(XBEE_DEBUG) Serial << "Len = " << rx.getDataLength() << endl;
+
+      addXbeeToList(senderLongAddress);
+      updateRxTime(senderLongAddress);
+
+      for(int i=0; i<32; i++) {
+        message_rx[i] = ' ';
+      }
+
+      if(XBEE_DEBUG) Serial.println();
+      last_rx = millis();
+      return true;
+
+	  }
+
     // --- Node Identifier Response
     // I'm not sure if this one will be good to have for the
     // operators (aka: routers), since then they would be
@@ -1459,7 +1514,7 @@ void OperatorInterface::connRead() {
 
   char c;
 
-  if(CONN_TYPE == USB_CONN || CONN_TYPE == BT_CONN) {
+  if(CONN_TYPE == USB_CONN || CONN_TYPE == BT_CONN || CONN_TYPE == XBEE_TRANSPARENT_CONN) {
 
     while(Serial1.available()) {
       c = Serial1.read();
@@ -1500,11 +1555,12 @@ void OperatorInterface::connSend(Msg m) {
 
   sprintf(message_tx,"%c%c%d,%d,%c%d,%d%c", m.action, m.pck1.cmd, m.pck1.key, m.pck1.val, m.pck2.cmd, m.pck2.key, m.pck2.val, m.delim);
   
-  Serial << "Conn TX ----> " << message_tx << endl;
+  if(CONN_TYPE == USB_CONN || CONN_TYPE == BT_CONN || CONN_TYPE == XBEE_TRANSPARENT_CONN) {
 
-  if(CONN_TYPE == USB_CONN || CONN_TYPE == BT_CONN) {
+  	Serial << "Conn TX ----> " << message_tx << endl;
 
-    Serial1.print(message_tx);
+    //Serial1.print(message_tx);
+    Serial1.println(message_tx);
     last_tx = current_time;
 
   } else if(CONN_TYPE == XBEE_CONN) {
@@ -1522,7 +1578,7 @@ void OperatorInterface::connSend(char action, char cmd, uint8_t key, uint16_t va
 
   Serial << "Conn TX ----> " << message_tx << endl;
 
-  if(CONN_TYPE == USB_CONN || CONN_TYPE == BT_CONN) {
+  if(CONN_TYPE == USB_CONN || CONN_TYPE == BT_CONN || CONN_TYPE == XBEE_TRANSPARENT_CONN) {
 
     Serial1.print(message_tx);
     last_tx = current_time;
@@ -1543,7 +1599,7 @@ void OperatorInterface::connSendEasy(char c) {
 
   Serial << "Conn TX ----> " << message_tx << endl;
 
-  if(CONN_TYPE == USB_CONN || CONN_TYPE == BT_CONN) {
+  if(CONN_TYPE == USB_CONN || CONN_TYPE == BT_CONN || CONN_TYPE == XBEE_TRANSPARENT_CONN) {
 
     Serial1.print(message_tx);
     last_tx = current_time;

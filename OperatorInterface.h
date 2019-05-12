@@ -30,7 +30,7 @@
 
 #define COMM_DEBUG true // anything with promulgate
 #define OP_DEBUG true    // anything with buttons, or op in general
-#define XBEE_DEBUG false // anything with the xbee scope
+#define XBEE_DEBUG true // anything with the xbee scope
 #define CONN_DEBUG false // anything with the connection stack
 #define MSG_DEBUG true  // anything with adding / removing Msgs
 
@@ -49,7 +49,7 @@
 #define BUTTON6 4
 
 // buttons
-#define DEBOUNCE 20
+#define DEBOUNCE 5
 
 // mode switch
 #define MODE_SW A10
@@ -108,6 +108,7 @@
 #define XBEE_CONN 1
 #define USB_CONN 2
 #define BT_CONN 3
+#define XBEE_TRANSPARENT_CONN 4
 
 // speaker
 // source: https://www.hackster.io/sanyam-chugh/super-mario-beats-on-arduino-5d96a8
@@ -352,7 +353,7 @@ class OperatorInterface {
     void calibrateHome();
     int getJoyX();
     int getJoyY();
-    void joystickDriveControl();
+    void joystickDriveControl(int DRIVE_SPEED, bool acceleration);
     void joystickArmControl();
     void joystickSimpleControl();
     
